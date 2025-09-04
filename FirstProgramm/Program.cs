@@ -1,24 +1,20 @@
-﻿using FirstProgramm;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using FirstProgramm;
 
-List<User> users = new() 
-{ 
-    new User("25938","Ivan", true),
-    new User("25694","Petr", false),
-    new User("68594","Georg", true),
-    new User("12574","John", false),
-    new User("98564","Alex", true),
-};
+Console.WriteLine("=== СРАВНЕНИЕ ПРОИЗВОДИТЕЛЬНОСТИ List<T> vs LinkedList<T> ДЛЯ ТЕКСТА ===\n");
 
-foreach (var user in users)
-{
-    if (user.IsPremium)
-    {
-        Console.WriteLine($"Hi, {user.Name}! Welcome back, premium user!");
-    }
-    else
-    {
-        Console.WriteLine($"Hi, {user.Name}!");
-        User.ShowAds();
-    }
-    Console.WriteLine(new string('-', 50)); // Разделитель
-}
+// Чтение текста из файла (или использование демо-текста)
+string[] words = FileService.GetTextWords();
+
+Console.WriteLine($"Загружено слов: {words.Length}");
+Console.WriteLine($"Примеры: {string.Join(", ", words.Take(5))}...\n");
+
+// Тестируем разные сценарии вставки
+InputProcessor.TestAddToEnd(words);
+InputProcessor.TestInsertAtBeginning(words);
+InputProcessor.TestInsertAtMiddle(words);
+InputProcessor.TestRandomInsert(words);
