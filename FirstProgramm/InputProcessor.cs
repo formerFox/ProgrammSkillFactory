@@ -9,183 +9,81 @@ namespace FirstProgramm
 {
     public static class InputProcessor
     {
-
-        public static void TestAddToEnd(string[] words)
+        /// Метод для получения топ-N самых частых слов из массива
+        /// <param name="words">Массив слов для анализа</param>
+        /// <param name="topN">Количество слов для возврата (топ-10, топ-20 и т.д.)</param>
+        /// <returns>Упорядоченная коллекция пар "слово-количество"</returns>
+        public static List<KeyValuePair<string, int>> GetTopWords(string[] words, int topN)
         {
-            Console.WriteLine("\nДОБАВЛЕНИЕ В КОНЕЦ:");
+            // Шаг 1: Создаем словарь для подсчета частоты слов
+            Dictionary<string, int> wordCounts = new Dictionary<string, int>();// Ключ - слово, Значение - количество повторений
 
-            var list = new List<string>();
-            var linkedList = new LinkedList<string>();
-
-            // List<T> - добавление в конец
-            var stopwatch = Stopwatch.StartNew();
+            // Шаг 2: Проходим по всем словам и подсчитываем частоту
             foreach (string word in words)
             {
-                list.Add(word);
-            }
-            stopwatch.Stop();
-            long listTime = stopwatch.ElapsedMilliseconds;
+                string lowerWord = word.ToLower().Trim();// Приводим слово к нижнему регистру
 
-            // LinkedList<T> - добавление в конец
-            stopwatch.Restart();
-            foreach (string word in words)
+                if (lowerWord.Length < 2) continue;// Пропускаем слишком короткие слова
+
+                if (wordCounts.ContainsKey(lowerWord)) wordCounts[lowerWord]++; // Если слово уже есть в словаре - увеличиваем счетчик на 1
+
+                else wordCounts[lowerWord] = 1;// Если слова нет в словаре - добавляем его со счетчиком 1
+            }
+
+            // Шаг 3: Преобразуем словарь в список пар "слово-количество" для сортировки
+            List<KeyValuePair<string, int>> wordList = new();
+
+            // Проходим по всем элементам словаря и добавляем их в список
+            foreach (var pair in wordCounts)
             {
-                linkedList.AddLast(word);
+                wordList.Add(new KeyValuePair<string, int>(pair.Key, pair.Value));
             }
-            stopwatch.Stop();
-            long linkedListTime = stopwatch.ElapsedMilliseconds;
 
-            PrintResults(listTime, linkedListTime, words.Length);
-            Console.WriteLine($"   List capacity: {list.Capacity}, Count: {list.Count}");
+            // Шаг 4: Сортируем список по количеству повторений (по убыванию)
+            wordList.Sort((a, b) => b.Value.CompareTo(a.Value));// Используем метод Sort с лямбда-выражением для сравнения
+
+            // Шаг 5: Берем только первые topN элементов (топ-10)
+            List<KeyValuePair<string, int>> topWords = new List<KeyValuePair<string, int>>();
+
+            int count = Math.Min(topN, wordList.Count);// Берем либо все слова, если их меньше topN, либо первые topN
+            for (int i = 0; i < count; i++)
+            {
+                topWords.Add(wordList[i]);
+            }
+
+            return topWords;
         }
 
-        public static void TestInsertAtBeginning(string[] words)
+        /// Метод для вывода топ-слов
+        /// <param name="topWords">Коллекция пар "слово-количество"</param>
+        public static void PrintTopWords(List<KeyValuePair<string, int>> topWords)
         {
-            Console.WriteLine("\nВСТАВКА В НАЧАЛО:");
-
-            var list = new List<string>();
-            var linkedList = new LinkedList<string>();
-
-            // List<T> - вставка в начало (медленно!)
-            var stopwatch = Stopwatch.StartNew();
-            foreach (string word in words)
+            if (topWords.Count == 0)
             {
-                list.Insert(0, word); // O(n) операция!
+                Console.WriteLine("Нет данных для вывода!");
+                return;
             }
-            stopwatch.Stop();
-            long listTime = stopwatch.ElapsedMilliseconds;
 
-            // LinkedList<T> - вставка в начало (быстро!)
-            stopwatch.Restart();
-            foreach (string word in words)
+            Console.WriteLine("\nТОП-10 САМЫХ ЧАСТЫХ СЛОВ:");
+            //Красивая рамка
+            Console.WriteLine(new string('═', 35));
+            Console.WriteLine("Место | Слово           | Количество");
+            Console.WriteLine(new string('─', 35));
+
+            // Выводим каждое слово с его частотой и местом в рейтинге
+            for (int i = 0; i < topWords.Count; i++)
             {
-                linkedList.AddFirst(word); // O(1) операция!
+                // Форматированный вывод с выравниванием:
+                // {i + 1,5} - номер места (выравнивание на 5 символов вправо)
+                // {topWords[i].Key,-15} - слово (выравнивание на 15 символов влево)  
+                // {topWords[i].Value,9} - количество (выравнивание на 9 символов вправо)
+                Console.WriteLine($"{i + 1,5} | {topWords[i].Key,-15} | {topWords[i].Value,9}");
             }
-            stopwatch.Stop();
-            long linkedListTime = stopwatch.ElapsedMilliseconds;
 
-            PrintResults(listTime, linkedListTime, words.Length);
-        }
+            Console.WriteLine(new string('─', 35));
 
-        public static void TestInsertAtMiddle(string[] words)
-        {
-            Console.WriteLine("\nВСТАВКА В СЕРЕДИНУ:");
-
-            var list = new List<string>();
-            var linkedList = new LinkedList<string>();
-
-            // List<T> - вставка в середину
-            var stopwatch = Stopwatch.StartNew();
-            foreach (string word in words)
-            {
-                int middleIndex = list.Count / 2;
-                list.Insert(middleIndex, word); // O(n) операция
-            }
-            stopwatch.Stop();
-            long listTime = stopwatch.ElapsedMilliseconds;
-
-            // LinkedList<T> - вставка в середину (требуется поиск позиции)
-            stopwatch.Restart();
-            LinkedListNode<string> currentNode = null;
-            foreach (string word in words)
-            {
-                if (currentNode == null || linkedList.Count == 0)
-                {
-                    linkedList.AddFirst(word);
-                    currentNode = linkedList.First;
-                }
-                else
-                {
-                    // Находим середину (это дорогая операция для LinkedList)
-                    int targetIndex = linkedList.Count / 2;
-                    var targetNode = GetNodeAt(linkedList, targetIndex);
-
-                    if (targetNode != null)
-                    {
-                        linkedList.AddAfter(targetNode, word);
-                    }
-                    else
-                    {
-                        linkedList.AddLast(word);
-                    }
-                }
-            }
-            stopwatch.Stop();
-            long linkedListTime = stopwatch.ElapsedMilliseconds;
-
-            PrintResults(listTime, linkedListTime, words.Length);
-        }
-
-        public static void TestRandomInsert(string[] words)
-        {
-            Console.WriteLine("\nСЛУЧАЙНАЯ ВСТАВКА:");
-
-            var list = new List<string>();
-            var linkedList = new LinkedList<string>();
-            var random = new Random();
-
-            // List<T> - случайная вставка
-            var stopwatch = Stopwatch.StartNew();
-            foreach (string word in words)
-            {
-                int randomIndex = list.Count == 0 ? 0 : random.Next(0, list.Count);
-                list.Insert(randomIndex, word); // O(n) операция
-            }
-            stopwatch.Stop();
-            long listTime = stopwatch.ElapsedMilliseconds;
-
-            // LinkedList<T> - случайная вставка
-            stopwatch.Restart();
-            foreach (string word in words)
-            {
-                if (linkedList.Count == 0)
-                {
-                    linkedList.AddFirst(word);
-                }
-                else
-                {
-                    int randomIndex = random.Next(0, linkedList.Count);
-                    var targetNode = GetNodeAt(linkedList, randomIndex);
-                    linkedList.AddAfter(targetNode, word); // O(1) после нахождения узла
-                }
-            }
-            stopwatch.Stop();
-            long linkedListTime = stopwatch.ElapsedMilliseconds;
-
-            PrintResults(listTime, linkedListTime, words.Length);
-        }
-
-        // Вспомогательный метод для получения узла по индексу (O(n) для LinkedList)
-        static LinkedListNode<string> GetNodeAt(LinkedList<string> list, int index)
-        {
-            if (index < 0 || index >= list.Count)
-                return null;
-
-            LinkedListNode<string> current = list.First;
-            for (int i = 0; i < index; i++)
-            {
-                current = current.Next;
-            }
-            return current;
-        }
-
-        static void PrintResults(long listTime, long linkedListTime, int operationsCount)
-        {
-            Console.WriteLine($"   List<T>:     {listTime} ms ({operationsCount} операций)");
-            Console.WriteLine($"   LinkedList<T>: {linkedListTime} ms ({operationsCount} операций)");
-
-            if (listTime > 0 && linkedListTime > 0)
-            {
-                double ratio = (double)listTime / linkedListTime;
-                Console.WriteLine($"   Соотношение: {ratio:F2}x (List/LinkedList)");
-
-                if (ratio > 1.5)
-                    Console.WriteLine("LinkedList быстрее");
-                else if (ratio < 0.67)
-                    Console.WriteLine("List быстрее");
-                else
-                    Console.WriteLine("Производительность сравнима");
-            }
         }
     }
+
 }
+
